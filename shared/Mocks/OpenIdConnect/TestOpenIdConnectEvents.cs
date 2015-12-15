@@ -22,16 +22,17 @@ namespace MusicStore.Mocks.OpenIdConnect
 
         internal static Task AuthenticationValidated(AuthenticationValidatedContext context)
         {
+            Helpers.ThrowIfConditionFailed(() => context.Ticket != null, "context.Ticket is null.");
+            Helpers.ThrowIfConditionFailed(() => context.Ticket.Principal != null, "context.Ticket.Principal is null.");
+            Helpers.ThrowIfConditionFailed(() => context.Ticket.Principal.Identity != null, "context.Ticket.Principal.Identity is null.");
+            Helpers.ThrowIfConditionFailed(() => !string.IsNullOrWhiteSpace(context.Ticket.Principal.Identity.Name), "context.Ticket.Principal.Identity.Name is null.");
+            eventsFired.Add(nameof(AuthorizationResponseRecieved));
             eventsFired.Add(nameof(AuthenticationValidated));
             return Task.FromResult(0);
         }
 
         internal static Task AuthorizationResponseRecieved(AuthorizationResponseReceivedContext context)
         {
-            Helpers.ThrowIfConditionFailed(() => context.Ticket != null, "context.Ticket is null.");
-            Helpers.ThrowIfConditionFailed(() => context.Ticket.Principal != null, "context.Ticket.Principal is null.");
-            Helpers.ThrowIfConditionFailed(() => context.Ticket.Principal.Identity != null, "context.Ticket.Principal.Identity is null.");
-            Helpers.ThrowIfConditionFailed(() => !string.IsNullOrWhiteSpace(context.Ticket.Principal.Identity.Name), "context.Ticket.Principal.Identity.Name is null.");
             eventsFired.Add(nameof(AuthorizationResponseRecieved));
             return Task.FromResult(0);
         }

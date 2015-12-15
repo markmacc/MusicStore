@@ -185,7 +185,7 @@ namespace MusicStore
                 },
                 BackchannelHttpHandler = new MicrosoftAccountMockBackChannelHandler(),
                 StateDataFormat = new CustomStateDataFormat(),
-                Scope = { "wl.basic", "wl.signin" }
+                Scope = { "wl.signin" }
             });
 
             // Add MVC to the request pipeline

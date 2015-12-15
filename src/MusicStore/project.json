@@ -15,6 +15,7 @@
   "compile": [
     "../../shared/**/*.cs"
   ],
+  "content": [ "hosting.json", "config.json" ],
   "publishExclude": "*.cmd",
   "dependencies": {
     "Microsoft.EntityFrameworkCore.InMemory": "1.0.0-*",
