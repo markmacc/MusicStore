@@ -6,6 +6,7 @@ using Microsoft.AspNet.Server.Testing;
 using Microsoft.AspNet.Testing;
 using Microsoft.AspNet.Testing.xunit;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.PlatformAbstractions;
 using Xunit;
 
 namespace E2ETests
@@ -72,6 +73,8 @@ namespace E2ETests
             RuntimeArchitecture architecture,
             string applicationBaseUrl)
         {
+
+            Console.WriteLine("-------------------OOOOOOOOOOOOOOOOOOOOOOOSSSSSS:" + PlatformServices.Default.Runtime.OperatingSystem);
             var smokeTestRunner = new SmokeTests();
             await smokeTestRunner.SmokeTestSuite(serverType, runtimeFlavor, architecture, applicationBaseUrl);
         }
