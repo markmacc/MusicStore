@@ -19,7 +19,7 @@ namespace E2ETests
         [OSSkipCondition(OperatingSystems.MacOSX)]
         //[InlineData(ServerType.WebListener, RuntimeFlavor.Clr, RuntimeArchitecture.x64, "http://localhost:5025/", false)]
         //[InlineData(ServerType.WebListener, RuntimeFlavor.CoreClr, RuntimeArchitecture.x64, "http://localhost:5026/", false)]
-        [InlineData(ServerType.Kestrel, RuntimeFlavor.Clr, RuntimeArchitecture.x64, "http://localhost:5027/", false)]
+        //[InlineData(ServerType.Kestrel, RuntimeFlavor.Clr, RuntimeArchitecture.x64, "http://localhost:5027/", false)]
         [InlineData(ServerType.Kestrel, RuntimeFlavor.CoreClr, RuntimeArchitecture.x64, "http://localhost:5028/", false)]
         public async Task WindowsOS(
             ServerType serverType,
@@ -28,6 +28,12 @@ namespace E2ETests
             string applicationBaseUrl,
             bool noSource)
         {
+            Console.WriteLine("Now");
+            while (!System.Diagnostics.Debugger.IsAttached)
+            {
+                System.Threading.Thread.Sleep(500);
+            }
+
             var testRunner = new PublishAndRunTests();
             await testRunner.Publish_And_Run_Tests(
                 serverType, runtimeFlavor, architecture, applicationBaseUrl, noSource);
@@ -51,39 +57,39 @@ namespace E2ETests
 
     public class PublishAndRunTests_OnX86
     {
-        [ConditionalTheory, Trait("E2Etests", "PublishAndRun")]
-        [OSSkipCondition(OperatingSystems.Linux)]
-        [OSSkipCondition(OperatingSystems.MacOSX)]
-        //[InlineData(ServerType.WebListener, RuntimeFlavor.Clr, RuntimeArchitecture.x86, "http://localhost:5031/", false)]
-        //[InlineData(ServerType.WebListener, RuntimeFlavor.CoreClr, RuntimeArchitecture.x86, "http://localhost:5032/", false)]
-        [InlineData(ServerType.Kestrel, RuntimeFlavor.Clr, RuntimeArchitecture.x86, "http://localhost:5033/", false)]
-        [InlineData(ServerType.Kestrel, RuntimeFlavor.CoreClr, RuntimeArchitecture.x86, "http://localhost:5034/", false)]
-        public async Task WindowsOS(
-            ServerType serverType,
-            RuntimeFlavor runtimeFlavor,
-            RuntimeArchitecture architecture,
-            string applicationBaseUrl,
-            bool noSource)
-        {
-            var testRunner = new PublishAndRunTests();
-            await testRunner.Publish_And_Run_Tests(
-                serverType, runtimeFlavor, architecture, applicationBaseUrl, noSource);
-        }
+        //[ConditionalTheory, Trait("E2Etests", "PublishAndRun")]
+        //[OSSkipCondition(OperatingSystems.Linux)]
+        //[OSSkipCondition(OperatingSystems.MacOSX)]
+        ////[InlineData(ServerType.WebListener, RuntimeFlavor.Clr, RuntimeArchitecture.x86, "http://localhost:5031/", false)]
+        ////[InlineData(ServerType.WebListener, RuntimeFlavor.CoreClr, RuntimeArchitecture.x86, "http://localhost:5032/", false)]
+        //[InlineData(ServerType.Kestrel, RuntimeFlavor.Clr, RuntimeArchitecture.x86, "http://localhost:5033/", false)]
+        //[InlineData(ServerType.Kestrel, RuntimeFlavor.CoreClr, RuntimeArchitecture.x86, "http://localhost:5034/", false)]
+        //public async Task WindowsOS(
+        //    ServerType serverType,
+        //    RuntimeFlavor runtimeFlavor,
+        //    RuntimeArchitecture architecture,
+        //    string applicationBaseUrl,
+        //    bool noSource)
+        //{
+        //    var testRunner = new PublishAndRunTests();
+        //    await testRunner.Publish_And_Run_Tests(
+        //        serverType, runtimeFlavor, architecture, applicationBaseUrl, noSource);
+        //}
 
-        [ConditionalTheory, Trait("E2Etests", "PublishAndRun")]
-        [OSSkipCondition(OperatingSystems.Windows)]
-        [InlineData(ServerType.Kestrel, RuntimeFlavor.Mono, RuntimeArchitecture.x86, "http://localhost:5035/", false)]
-        public async Task NonWindowsOS(
-            ServerType serverType,
-            RuntimeFlavor runtimeFlavor,
-            RuntimeArchitecture architecture,
-            string applicationBaseUrl,
-            bool noSource)
-        {
-            var testRunner = new PublishAndRunTests();
-            await testRunner.Publish_And_Run_Tests(
-                serverType, runtimeFlavor, architecture, applicationBaseUrl, noSource);
-        }
+        //[ConditionalTheory, Trait("E2Etests", "PublishAndRun")]
+        //[OSSkipCondition(OperatingSystems.Windows)]
+        //[InlineData(ServerType.Kestrel, RuntimeFlavor.Mono, RuntimeArchitecture.x86, "http://localhost:5035/", false)]
+        //public async Task NonWindowsOS(
+        //    ServerType serverType,
+        //    RuntimeFlavor runtimeFlavor,
+        //    RuntimeArchitecture architecture,
+        //    string applicationBaseUrl,
+        //    bool noSource)
+        //{
+        //    var testRunner = new PublishAndRunTests();
+        //    await testRunner.Publish_And_Run_Tests(
+        //        serverType, runtimeFlavor, architecture, applicationBaseUrl, noSource);
+        //}
     }
 
     public class PublishAndRunTests
@@ -109,7 +115,6 @@ namespace E2ETests
                 {
                     ApplicationBaseUriHint = applicationBaseUrl,
                     PublishApplicationBeforeDeployment = true,
-                    PublishWithNoSource = noSource,
                     UserAdditionalCleanup = parameters =>
                     {
                         if (!Helpers.RunningOnMono
