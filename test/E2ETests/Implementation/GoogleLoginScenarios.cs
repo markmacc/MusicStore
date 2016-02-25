@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using System.Collections.Generic;
 using System.Net;
 using System.Net.Http;
@@ -39,11 +40,13 @@ namespace E2ETests
             Assert.Equal<string>("openid profile email", queryItems["scope"]);
             Assert.Equal<string>("ValidStateData", queryItems["state"]);
             Assert.Equal<string>("custom", queryItems["custom_redirect_uri"]);
+
             //Check for the correlation cookie
-            //Assert.NotNull(_httpClientHandler.CookieContainer.GetCookies(new Uri(_deploymentResult.ApplicationBaseUri)).GetCookieWithName(".AspNetCore.Correlation.Google"));
+            Assert.NotEmpty(_httpClientHandler.CookieContainer.GetCookies(new Uri(_deploymentResult.ApplicationBaseUri))
+                .Cast<Cookie>().Where(c => c.Name.StartsWith(".AspNetCore.Correlation.Google")));
 
             //This is just to generate a correlation cookie. Previous step would generate this cookie, but we have reset the handler now.
-            _httpClientHandler = new HttpClientHandler() { AllowAutoRedirect = false };
+            _httpClientHandler = new HttpClientHandler() { AllowAutoRedirect = true };
             _httpClient = new HttpClient(_httpClientHandler) { BaseAddress = new Uri(_deploymentResult.ApplicationBaseUri) };
 
             response = await _httpClient.GetAsync("Account/Login");
@@ -60,14 +63,14 @@ namespace E2ETests
 
             //Post a message to the Google middleware
             response = await _httpClient.GetAsync("signin-google?code=ValidCode&state=ValidStateData");
-            response = await _httpClient.GetAsync(response.Headers.Location);
             await ThrowIfResponseStatusNotOk(response);
             responseContent = await response.Content.ReadAsStringAsync();
 
             //Correlation cookie not getting cleared after successful signin?
             if (!Helpers.RunningOnMono)
             {
-                Assert.Null(_httpClientHandler.CookieContainer.GetCookies(new Uri(_deploymentResult.ApplicationBaseUri)).GetCookieWithName(".AspNetCore.Correlation.Google"));
+                Assert.Empty(_httpClientHandler.CookieContainer.GetCookies(new Uri(_deploymentResult.ApplicationBaseUri))
+                    .Cast<Cookie>().Where(c => c.Name.StartsWith(".AspNetCore.Correlation.Google")));
             }
             Assert.Equal(_deploymentResult.ApplicationBaseUri + "Account/ExternalLoginCallback?ReturnUrl=%2F", response.RequestMessage.RequestUri.AbsoluteUri);
             Assert.Contains("AspnetvnextTest@gmail.com", responseContent, StringComparison.OrdinalIgnoreCase);
@@ -80,7 +83,6 @@ namespace E2ETests
 
             content = new FormUrlEncodedContent(formParameters.ToArray());
             response = await _httpClient.PostAsync("Account/ExternalLoginConfirmation", content);
-            response = await _httpClient.GetAsync(response.Headers.Location);
             await ThrowIfResponseStatusNotOk(response);
             responseContent = await response.Content.ReadAsStringAsync();
 
