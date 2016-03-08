@@ -5,17 +5,21 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
 using MusicStore.Models;
+using Microsoft.Extensions.Options;
+
 
 namespace MusicStore.Controllers
 {
     public class StoreController : Controller
     {
-        public StoreController(MusicStoreContext dbContext)
+        public StoreController(MusicStoreContext dbContext, IOptions<AppSettings> appSettings)
         {
             DbContext = dbContext;
+            AppSettings = appSettings;
         }
 
         public MusicStoreContext DbContext { get; }
+        private IOptions<AppSettings> AppSettings;
 
         //
         // GET: /Store/
@@ -50,22 +54,34 @@ namespace MusicStore.Controllers
         {
             var cacheKey = string.Format("album_{0}", id);
             Album album;
-            if (!cache.TryGetValue(cacheKey, out album))
+
+            if (AppSettings.Value.CacheTimeout > 0)
+            {
+                if (!cache.TryGetValue(cacheKey, out album))
+                {
+                    album = await DbContext.Albums
+                                    .Where(a => a.AlbumId == id)
+                                    .Include(a => a.Artist)
+                                    .Include(a => a.Genre)
+                                    .FirstOrDefaultAsync();
+
+                    if (album != null)
+                    {
+                        //Remove it from cache if not retrieved in last 10 minutes
+                        cache.Set(
+                            cacheKey,
+                            album,
+                            new MemoryCacheEntryOptions().SetSlidingExpiration(TimeSpan.FromSeconds(AppSettings.Value.CacheTimeout)));
+                    }
+                }
+            }
+            else
             {
                 album = await DbContext.Albums
                                 .Where(a => a.AlbumId == id)
                                 .Include(a => a.Artist)
                                 .Include(a => a.Genre)
                                 .FirstOrDefaultAsync();
-
-                if (album != null)
-                {
-                    //Remove it from cache if not retrieved in last 10 minutes
-                    cache.Set(
-                        cacheKey,
-                        album,
-                        new MemoryCacheEntryOptions().SetSlidingExpiration(TimeSpan.FromMinutes(10)));
-                }
             }
 
             if (album == null)

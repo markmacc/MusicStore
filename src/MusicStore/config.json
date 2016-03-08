@@ -1,14 +1,15 @@
 ﻿{
     "AppSettings": {
-        "SiteTitle": "ASP.NET MVC Music Store"
+      "SiteTitle": "ASP.NET MVC Music Store",
+      "CacheTimeout":  "10"
     },
     "DefaultAdminUsername": "Administrator@test.com",
     "DefaultAdminPassword": "YouShouldChangeThisPassword1!",
-    "Data": {
-        "DefaultConnection": {
-            // Use a shared (and running) LocalDB database when executing in IIS e.g.
-            // "Server=(localdb)\\.\\IIS_DB;Database=MusicStore;Trusted_Connection=False;MultipleActiveResultSets=true;User ID=iis_login;Password=********"
-            "Connectionstring": "Server=(localdb)\\MSSQLLocalDB;Database=MusicStore;Trusted_Connection=True;MultipleActiveResultSets=true;Connect Timeout=30;"
-        }
+  "Data": {
+    "DefaultConnection": {
+      // Use a shared (and running) LocalDB database when executing in IIS e.g.
+      // "Server=(localdb)\\.\\IIS_DB;Database=MusicStore;Trusted_Connection=False;MultipleActiveResultSets=true;User ID=iis_login;Password=********"
+      "Connectionstring": "Server=(localdb)\\MSSQLLocalDB;Database=MusicStore;Trusted_Connection=True;MultipleActiveResultSets=true;Connect Timeout=30;",
     }
+  }
 }

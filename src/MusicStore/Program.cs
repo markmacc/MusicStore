@@ -7,6 +7,7 @@ namespace MusicStore
         public static void Main(string[] args)
         {
             var host = new WebHostBuilder()
+                .UseUrls("http://+:5000")
                 .UseDefaultConfiguration(args)
                 .UseIISPlatformHandlerUrl()
                 .UseStartup("MusicStore")

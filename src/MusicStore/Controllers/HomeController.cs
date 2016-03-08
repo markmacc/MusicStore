@@ -6,36 +6,55 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
 using MusicStore.Models;
+using Microsoft.Extensions.Options;
 
 namespace MusicStore.Controllers
 {
     public class HomeController : Controller
     {
+
+        private IOptions<AppSettings> AppSettings;
+
+        public HomeController(IOptions<AppSettings> appSettings)
+        {
+            AppSettings = appSettings;
+        }
+
         //
         // GET: /Home/
         public async Task<IActionResult> Index(
             [FromServices] MusicStoreContext dbContext,
             [FromServices] IMemoryCache cache)
         {
+
             // Get most popular albums
             var cacheKey = "topselling";
             List<Album> albums;
-            if (!cache.TryGetValue(cacheKey, out albums))
-            {
-                albums = await GetTopSellingAlbumsAsync(dbContext, 6);
 
-                if (albums != null && albums.Count > 0)
+            if (AppSettings.Value.CacheTimeout > 0)
+            {
+                if (!cache.TryGetValue(cacheKey, out albums))
                 {
-                    // Refresh it every 10 minutes.
-                    // Let this be the last item to be removed by cache if cache GC kicks in.
-                    cache.Set(
-                        cacheKey,
-                        albums,
-                        new MemoryCacheEntryOptions()
-                            .SetAbsoluteExpiration(TimeSpan.FromMinutes(10))
-                            .SetPriority(CacheItemPriority.High));
+                    albums = await GetTopSellingAlbumsAsync(dbContext, 6);
+
+                    if (albums != null && albums.Count > 0)
+                    {
+                        // Refresh it every 10 minutes.
+                        // Let this be the last item to be removed by cache if cache GC kicks in.
+                        cache.Set(
+                            cacheKey,
+                            albums,
+                            new MemoryCacheEntryOptions()
+                                .SetAbsoluteExpiration(TimeSpan.FromSeconds(AppSettings.Value.CacheTimeout))
+                                .SetPriority(CacheItemPriority.High));
+                    }
                 }
             }
+            else
+            {
+                albums = await GetTopSellingAlbumsAsync(dbContext, 6);
+            }
+
 
             return View(albums);
         }
