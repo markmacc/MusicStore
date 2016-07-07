@@ -5,7 +5,7 @@ using System.Net.Http;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http.Internal;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.WebUtilities;
 
 namespace MusicStore.Mocks.Google
@@ -19,9 +19,9 @@ namespace MusicStore.Mocks.Google
         {
             var response = new HttpResponseMessage();
 
-            if (request.RequestUri.AbsoluteUri.StartsWith("https://www.googleapis.com/oauth2/v3/token"))
+            if (request.RequestUri.AbsoluteUri.StartsWith("https://www.googleapis.com/oauth2/v4/token"))
             {
-                var formData = new FormCollection(await FormReader.ReadFormAsync(await request.Content.ReadAsStreamAsync()));
+                var formData = new FormCollection(await new FormReader(await request.Content.ReadAsStreamAsync()).ReadFormAsync());
                 if (formData["grant_type"] == "authorization_code")
                 {
                     if (formData["code"] == "ValidCode")
@@ -53,5 +53,5 @@ namespace MusicStore.Mocks.Google
             throw new NotImplementedException(request.RequestUri.AbsoluteUri);
         }
     }
-} 
+}
 #endif

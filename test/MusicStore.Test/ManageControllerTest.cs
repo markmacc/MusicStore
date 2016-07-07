@@ -3,10 +3,7 @@ using System.Collections.Generic;
 using System.Security.Claims;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Http.Features;
 using Microsoft.AspNetCore.Http.Features.Authentication;
-using Microsoft.AspNetCore.Http.Features.Authentication.Internal;
-using Microsoft.AspNetCore.Http.Internal;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.AspNetCore.Mvc;
@@ -23,15 +20,18 @@ namespace MusicStore.Controllers
 
         public ManageControllerTest()
         {
+            var efServiceProvider = new ServiceCollection().AddEntityFrameworkInMemoryDatabase().BuildServiceProvider();
+
             var services = new ServiceCollection();
-            services.AddEntityFramework()
-                    .AddInMemoryDatabase()
-                    .AddDbContext<MusicStoreContext>(options => options.UseInMemoryDatabase());
+            services.AddOptions();
+            services
+                .AddDbContext<MusicStoreContext>(b => b.UseInMemoryDatabase().UseInternalServiceProvider(efServiceProvider));
 
             services.AddIdentity<ApplicationUser, IdentityRole>()
                     .AddEntityFrameworkStores<MusicStoreContext>();
 
             services.AddLogging();
+            services.AddOptions();
 
             // IHttpContextAccessor is required for SignInManager, and UserManager
             var context = new DefaultHttpContext();

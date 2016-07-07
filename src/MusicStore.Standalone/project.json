@@ -6,18 +6,24 @@
   "version": "1.1.0-*",
   "buildOptions": {
     "compile": {
+      "exclude": [
+        "../MusicStore/Program.cs",
+        "../MusicStore/bin",
+        "../MusicStore/obj"
+      ],
       "include": [
-        "../../shared/**/*.cs"
+        "../../shared/**/*.cs",
+        "../MusicStore/**/*.cs"
       ]
     },
     "copyToOutput": {
-      "include": [
-        "Areas",
-        "Views",
-        "wwwroot",
-        "config.json",
-        "web.config"
-      ]
+      "mappings": {
+      "Areas/": "../MusicStore/Areas/**/*.cshtml",
+      "Views/": "../MusicStore/Views/**/*.cshtml",
+      "wwwroot/": "../MusicStore/wwwroot/",
+      "web.config": "../MusicStore/web.config",
+      "config.json": "../MusicStore/config.json"
+      }
     },
     "define": [
       "DEMO",
@@ -28,13 +34,13 @@
     "warningsAsErrors": true
   },
   "publishOptions": {
-    "include": [
-      "Areas",
-      "Views",
-      "wwwroot",
-      "config.json",
-      "web.config"
-    ]
+    "mappings": {
+      "Areas/": "../MusicStore/Areas/**/*.cshtml",
+      "Views/": "../MusicStore/Views/**/*.cshtml",
+      "wwwroot/": "../MusicStore/wwwroot/",
+      "web.config": "../MusicStore/web.config",
+      "config.json": "../MusicStore/config.json"
+    }
   },
   "dependencies": {
     "Microsoft.AspNetCore.Authentication.Cookies": "1.1.0-*",
@@ -62,12 +68,10 @@
     "Microsoft.Extensions.Options.ConfigurationExtensions": "1.1.0-*"
   },
   "frameworks": {
-    "net451": {},
     "netcoreapp1.0": {
       "dependencies": {
         "Microsoft.NETCore.App": {
-          "version": "1.0.0-*",
-          "type": "platform"
+          "version": "1.0.0-*"
         }
       }
     }
@@ -77,5 +81,15 @@
   },
   "scripts": {
     "postpublish": "dotnet publish-iis --publish-folder %publish:OutputPath% --framework %publish:FullTargetFramework%"
+  },
+  "runtimes": {
+    "win7-x64": {},
+    "win7-x86": {},
+    "osx.10.10-x64": {},
+    "osx.10.11-x64": {},
+    "ubuntu.14.04-x64": {},
+    "ubuntu.15.04-x64": {},
+    "centos.7-x64": {},
+    "rhel.7.2-x64": {}
   }
 }

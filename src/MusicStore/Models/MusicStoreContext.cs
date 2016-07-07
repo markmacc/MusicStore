@@ -7,6 +7,13 @@ namespace MusicStore.Models
 
     public class MusicStoreContext : IdentityDbContext<ApplicationUser>
     {
+        public MusicStoreContext(DbContextOptions<MusicStoreContext> options)
+            : base(options)
+        {
+            // TODO: #639
+            //ChangeTracker.QueryTrackingBehavior = QueryTrackingBehavior.NoTracking;
+        }
+
         public DbSet<Album> Albums { get; set; }
         public DbSet<Artist> Artists { get; set; }
         public DbSet<Order> Orders { get; set; }

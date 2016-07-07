@@ -1,10 +1,11 @@
 using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.PlatformAbstractions;
+using Microsoft.IdentityModel.Protocols.OpenIdConnect;
 using MusicStore.Components;
 using MusicStore.Models;
 
@@ -13,14 +14,14 @@ namespace MusicStore
     /// <summary>
     /// To make runtime to load an environment based startup class, specify the environment by the following ways:
     /// 1. Drop a Microsoft.AspNetCore.Hosting.ini file in the wwwroot folder
-    /// 2. Add a setting in the ini file named 'ASPNET_ENV' with value of the format 'Startup[EnvironmentName]'.
+    /// 2. Add a setting in the ini file named 'ASPNETCORE_ENVIRONMENT' with value of the format 'Startup[EnvironmentName]'.
     ///    For example: To load a Startup class named 'StartupOpenIdConnect' the value of the env should be
-    ///    'OpenIdConnect' (eg. ASPNET_ENV=OpenIdConnect). Runtime adds a 'Startup' prefix to this
+    ///    'OpenIdConnect' (eg. ASPNETCORE_ENVIRONMENT=OpenIdConnect). Runtime adds a 'Startup' prefix to this
     ///    and loads 'StartupOpenIdConnect'.
     ///
     /// If no environment name is specified the default startup class loaded is 'Startup'.
     /// Alternative ways to specify environment are:
-    /// 1. Set the environment variable named SET ASPNET_ENV=OpenIdConnect
+    /// 1. Set the environment variable named SET ASPNETCORE_ENVIRONMENT=OpenIdConnect
     /// 2. For selfhost based servers pass in a command line variable named --env with this value. Eg:
     /// "commands": {
     ///    "web": "Microsoft.AspNetCore.Hosting --server Microsoft.AspNetCore.Server.WebListener
@@ -31,19 +32,19 @@ namespace MusicStore
     {
         private readonly Platform _platform;
 
-        public StartupOpenIdConnect(IApplicationEnvironment env, IRuntimeEnvironment runtimeEnvironment)
+        public StartupOpenIdConnect(IHostingEnvironment hostingEnvironment)
         {
             // Below code demonstrates usage of multiple configuration sources. For instance a setting say 'setting1'
             // is found in both the registered sources, then the later source will win. By this way a Local config can
             // be overridden by a different setting while deployed remotely.
             var builder = new ConfigurationBuilder()
-                .SetBasePath(env.ApplicationBasePath)
+                .SetBasePath(hostingEnvironment.ContentRootPath)
                 .AddJsonFile("config.json")
                 //All environment variables in the process's context flow in as configuration values.
                 .AddEnvironmentVariables();
 
             Configuration = builder.Build();
-            _platform = new Platform(runtimeEnvironment);
+            _platform = new Platform();
         }
 
         public IConfiguration Configuration { get; private set; }
@@ -52,21 +53,15 @@ namespace MusicStore
         {
             services.Configure<AppSettings>(Configuration.GetSection("AppSettings"));
 
-            var useInMemoryStore = _platform.IsRunningOnMono || _platform.IsRunningOnNanoServer;
-
             // Add EF services to the services container
-            if (useInMemoryStore)
+            if (_platform.UseInMemoryStore)
             {
-                services.AddEntityFramework()
-                        .AddInMemoryDatabase()
-                        .AddDbContext<MusicStoreContext>(options =>
+                services.AddDbContext<MusicStoreContext>(options =>
                             options.UseInMemoryDatabase());
             }
             else
             {
-                services.AddEntityFramework()
-                        .AddSqlServer()
-                        .AddDbContext<MusicStoreContext>(options =>
+                services.AddDbContext<MusicStoreContext>(options =>
                             options.UseSqlServer(Configuration["Data:DefaultConnection:ConnectionString"]));
             }
 
@@ -101,7 +96,8 @@ namespace MusicStore
             {
                 options.AddPolicy(
                     "ManageStore",
-                    authBuilder => {
+                    authBuilder =>
+                    {
                         authBuilder.RequireClaim("ManageStore", "Allowed");
                     });
             });
@@ -119,11 +115,6 @@ namespace MusicStore
 
             app.UseDatabaseErrorPage();
 
-            // Add the runtime information page that can be used by developers
-            // to see what packages are used by the application
-            // default path is: /runtimeinfo
-            app.UseRuntimeInfoPage();
-
             // Configure Session.
             app.UseSession();
 
@@ -137,7 +128,8 @@ namespace MusicStore
             app.UseOpenIdConnectAuthentication(new OpenIdConnectOptions
             {
                 Authority = "https://login.windows.net/[tenantName].onmicrosoft.com",
-                ClientId = "[ClientId]"
+                ClientId = "[ClientId]",
+                ResponseType = OpenIdConnectResponseType.CodeIdToken,
             });
 
             // Add MVC to the request pipeline

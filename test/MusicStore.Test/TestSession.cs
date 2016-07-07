@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http.Features;
+using Microsoft.AspNetCore.Http;
 
 namespace MusicStore.Controllers
 {
@@ -13,6 +13,8 @@ namespace MusicStore.Controllers
         public IEnumerable<string> Keys { get { return _store.Keys; } }
 
         public string Id { get; set; }
+
+        public bool IsAvailable { get; } = true;
 
         public void Clear()
         {

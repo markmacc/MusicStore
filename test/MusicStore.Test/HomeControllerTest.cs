@@ -7,6 +7,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.DependencyInjection;
 using MusicStore.Models;
+using MusicStore.Test;
 using Xunit;
 
 namespace MusicStore.Controllers
@@ -17,11 +18,11 @@ namespace MusicStore.Controllers
 
         public HomeControllerTest()
         {
+            var efServiceProvider = new ServiceCollection().AddEntityFrameworkInMemoryDatabase().BuildServiceProvider();
+
             var services = new ServiceCollection();
 
-            services.AddEntityFramework()
-                      .AddInMemoryDatabase()
-                      .AddDbContext<MusicStoreContext>(options => options.UseInMemoryDatabase());
+            services.AddDbContext<MusicStoreContext>(b => b.UseInMemoryDatabase().UseInternalServiceProvider(efServiceProvider));
 
             _serviceProvider = services.BuildServiceProvider();
         }
@@ -30,7 +31,7 @@ namespace MusicStore.Controllers
         public void Error_ReturnsErrorView()
         {
             // Arrange
-            var controller = new HomeController();
+            var controller = new HomeController(new TestAppSettings());
             var errorView = "~/Views/Shared/Error.cshtml";
 
             // Act
@@ -48,7 +49,7 @@ namespace MusicStore.Controllers
             // Arrange
             var dbContext = _serviceProvider.GetRequiredService<MusicStoreContext>();
             var cache = _serviceProvider.GetRequiredService<IMemoryCache>();
-            var controller = new HomeController();
+            var controller = new HomeController(new TestAppSettings());
             PopulateData(dbContext);
 
             // Action
@@ -69,7 +70,7 @@ namespace MusicStore.Controllers
         public void StatusCodePage_ReturnsStatusCodePage()
         {
             // Arrange
-            var controller = new HomeController();
+            var controller = new HomeController(new TestAppSettings());
             var statusCodeView = "~/Views/Shared/StatusCodePage.cshtml";
 
             // Action

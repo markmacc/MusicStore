@@ -1,4 +1,5 @@
 using System;
+using System.IO;
 using System.Collections.Generic;
 using System.Net;
 using System.Net.Http;
@@ -27,31 +28,38 @@ namespace E2ETests
         [ConditionalTheory, Trait("E2Etests", "Smoke")]
         [OSSkipCondition(OperatingSystems.Linux)]
         [OSSkipCondition(OperatingSystems.MacOSX)]
-        [InlineData(ServerType.WebListener, RuntimeFlavor.Clr, RuntimeArchitecture.x86, "http://localhost:5001/")]
-        [InlineData(ServerType.WebListener, RuntimeFlavor.CoreClr, RuntimeArchitecture.x86, "http://localhost:5002/")]
-        [InlineData(ServerType.Kestrel, RuntimeFlavor.Clr, RuntimeArchitecture.x86, "http://localhost:5003/")]
-        [InlineData(ServerType.Kestrel, RuntimeFlavor.CoreClr, RuntimeArchitecture.x86, "http://localhost:5004/")]
+        [InlineData(ServerType.WebListener, RuntimeFlavor.Clr, RuntimeArchitecture.x86, ApplicationType.Portable, "http://localhost:5001/")]
+        [InlineData(ServerType.WebListener, RuntimeFlavor.CoreClr, RuntimeArchitecture.x86, ApplicationType.Portable, "http://localhost:5002/")]
+        [InlineData(ServerType.WebListener, RuntimeFlavor.CoreClr, RuntimeArchitecture.x86, ApplicationType.Standalone, "http://localhost:5003/")]
+        [InlineData(ServerType.Kestrel, RuntimeFlavor.Clr, RuntimeArchitecture.x86, ApplicationType.Portable, "http://localhost:5004/")]
+        [InlineData(ServerType.Kestrel, RuntimeFlavor.CoreClr, RuntimeArchitecture.x86, ApplicationType.Portable, "http://localhost:5005/")]
+        [InlineData(ServerType.Kestrel, RuntimeFlavor.CoreClr, RuntimeArchitecture.x86, ApplicationType.Standalone, "http://localhost:5006/")]
+        [InlineData(ServerType.IISExpress, RuntimeFlavor.Clr, RuntimeArchitecture.x86, ApplicationType.Portable, "http://localhost:5007/")]
+        [InlineData(ServerType.IISExpress, RuntimeFlavor.CoreClr, RuntimeArchitecture.x86, ApplicationType.Portable, "http://localhost:5008/")]
+        [InlineData(ServerType.IISExpress, RuntimeFlavor.CoreClr, RuntimeArchitecture.x86, ApplicationType.Standalone, "http://localhost:5009/")]
         public async Task WindowsOS(
             ServerType serverType,
             RuntimeFlavor runtimeFlavor,
             RuntimeArchitecture architecture,
+            ApplicationType applicationType,
             string applicationBaseUrl)
         {
             var smokeTestRunner = new SmokeTests(_logger);
-            await smokeTestRunner.SmokeTestSuite(serverType, runtimeFlavor, architecture, applicationBaseUrl);
+            await smokeTestRunner.SmokeTestSuite(serverType, runtimeFlavor, architecture, applicationType, applicationBaseUrl);
         }
 
         [ConditionalTheory(Skip = "Temporarily disabling test"), Trait("E2Etests", "Smoke")]
         [OSSkipCondition(OperatingSystems.Windows)]
-        [InlineData(ServerType.Kestrel, RuntimeFlavor.Clr, RuntimeArchitecture.x86, "http://localhost:5005/")]
+        [InlineData(ServerType.Kestrel, RuntimeFlavor.Clr, RuntimeArchitecture.x86, ApplicationType.Portable, "http://localhost:5010/")]
         public async Task NonWindowsOS(
             ServerType serverType,
             RuntimeFlavor runtimeFlavor,
             RuntimeArchitecture architecture,
+            ApplicationType applicationType,
             string applicationBaseUrl)
         {
             var smokeTestRunner = new SmokeTests(_logger);
-            await smokeTestRunner.SmokeTestSuite(serverType, runtimeFlavor, architecture, applicationBaseUrl);
+            await smokeTestRunner.SmokeTestSuite(serverType, runtimeFlavor, architecture, applicationType, applicationBaseUrl);
         }
 
         public void Dispose()
@@ -72,31 +80,39 @@ namespace E2ETests
         [ConditionalTheory, Trait("E2Etests", "Smoke")]
         [OSSkipCondition(OperatingSystems.Linux)]
         [OSSkipCondition(OperatingSystems.MacOSX)]
-        //[InlineData(ServerType.WebListener, RuntimeFlavor.Clr, RuntimeArchitecture.x64, "http://localhost:5006/")]
-        //[InlineData(ServerType.WebListener, RuntimeFlavor.CoreClr, RuntimeArchitecture.x64, "http://localhost:5007/")]
-        //[InlineData(ServerType.Kestrel, RuntimeFlavor.Clr, RuntimeArchitecture.x64, "http://localhost:5008/")]
-        [InlineData(ServerType.Kestrel, RuntimeFlavor.CoreClr, RuntimeArchitecture.x64, "http://localhost:5009/")]
+        [InlineData(ServerType.WebListener, RuntimeFlavor.Clr, RuntimeArchitecture.x64, ApplicationType.Portable, "http://localhost:5011/")]
+        [InlineData(ServerType.WebListener, RuntimeFlavor.CoreClr, RuntimeArchitecture.x64, ApplicationType.Portable, "http://localhost:5012/")]
+        [InlineData(ServerType.WebListener, RuntimeFlavor.CoreClr, RuntimeArchitecture.x64, ApplicationType.Standalone, "http://localhost:5013/")]
+        [InlineData(ServerType.Kestrel, RuntimeFlavor.Clr, RuntimeArchitecture.x64, ApplicationType.Portable, "http://localhost:5014/")]
+        [InlineData(ServerType.Kestrel, RuntimeFlavor.CoreClr, RuntimeArchitecture.x64, ApplicationType.Portable, "http://localhost:5015/")]
+        [InlineData(ServerType.Kestrel, RuntimeFlavor.CoreClr, RuntimeArchitecture.x64, ApplicationType.Standalone, "http://localhost:5016/")]
+        [InlineData(ServerType.IISExpress, RuntimeFlavor.Clr, RuntimeArchitecture.x64, ApplicationType.Portable, "http://localhost:5017/")]
+        [InlineData(ServerType.IISExpress, RuntimeFlavor.CoreClr, RuntimeArchitecture.x64, ApplicationType.Portable, "http://localhost:5018/")]
+        [InlineData(ServerType.IISExpress, RuntimeFlavor.CoreClr, RuntimeArchitecture.x64, ApplicationType.Standalone, "http://localhost:5019/")]
         public async Task WindowsOS(
             ServerType serverType,
             RuntimeFlavor runtimeFlavor,
             RuntimeArchitecture architecture,
+            ApplicationType applicationType,
             string applicationBaseUrl)
         {
             var smokeTestRunner = new SmokeTests(_logger);
-            await smokeTestRunner.SmokeTestSuite(serverType, runtimeFlavor, architecture, applicationBaseUrl);
+            await smokeTestRunner.SmokeTestSuite(serverType, runtimeFlavor, architecture, applicationType, applicationBaseUrl);
         }
 
         [ConditionalTheory, Trait("E2Etests", "Smoke")]
         [OSSkipCondition(OperatingSystems.Windows)]
-        [InlineData(ServerType.Kestrel, RuntimeFlavor.CoreClr, RuntimeArchitecture.x64, "http://localhost:5011/")]
+        [InlineData(ServerType.Kestrel, RuntimeFlavor.CoreClr, RuntimeArchitecture.x64, ApplicationType.Portable, "http://localhost:5020/")]
+        [InlineData(ServerType.Kestrel, RuntimeFlavor.CoreClr, RuntimeArchitecture.x64, ApplicationType.Standalone, "http://localhost:5021/")]
         public async Task NonWindowsOS(
             ServerType serverType,
             RuntimeFlavor runtimeFlavor,
             RuntimeArchitecture architecture,
+            ApplicationType applicationType,
             string applicationBaseUrl)
         {
             var smokeTestRunner = new SmokeTests(_logger);
-            await smokeTestRunner.SmokeTestSuite(serverType, runtimeFlavor, architecture, applicationBaseUrl);
+            await smokeTestRunner.SmokeTestSuite(serverType, runtimeFlavor, architecture, applicationType, applicationBaseUrl);
         }
         public void Dispose()
         {
@@ -117,18 +133,20 @@ namespace E2ETests
         [OSSkipCondition(OperatingSystems.MacOSX)]
         [OSSkipCondition(OperatingSystems.Linux)]
         [SkipIfCurrentRuntimeIsCoreClr]
-        [SkipIfIISVariationsNotEnabled]
-        //[InlineData(ServerType.IIS, RuntimeFlavor.Clr, RuntimeArchitecture.x86, "http://localhost:5012/")]
-        [InlineData(ServerType.IIS, RuntimeFlavor.CoreClr, RuntimeArchitecture.x64, "http://localhost:5013/")]
+        [SkipIfEnvironmentVariableNotEnabled("IIS_VARIATIONS_ENABLED")]
+        //[InlineData(ServerType.IIS, RuntimeFlavor.Clr, RuntimeArchitecture.x86, ApplicationType.Portable, "http://localhost:5022/")]
+        [InlineData(ServerType.IIS, RuntimeFlavor.CoreClr, RuntimeArchitecture.x64, ApplicationType.Portable, "http://localhost:5023/")]
+        [InlineData(ServerType.IIS, RuntimeFlavor.CoreClr, RuntimeArchitecture.x64, ApplicationType.Standalone, "http://localhost:5024/")]
         public async Task SmokeTestSuite_On_IIS_X86(
             ServerType serverType,
             RuntimeFlavor runtimeFlavor,
             RuntimeArchitecture architecture,
+            ApplicationType applicationType,
             string applicationBaseUrl)
         {
             var smokeTestRunner = new SmokeTests(_logger);
             await smokeTestRunner.SmokeTestSuite(
-                serverType, runtimeFlavor, architecture, applicationBaseUrl, noSource: true);
+                serverType, runtimeFlavor, architecture, applicationType, applicationBaseUrl, noSource: true);
         }
 
         public void Dispose()
@@ -148,8 +166,9 @@ namespace E2ETests
 
         public async Task SmokeTestSuite(
             ServerType serverType,
-            RuntimeFlavor donetFlavor,
+            RuntimeFlavor runtimeFlavor,
             RuntimeArchitecture architecture,
+            ApplicationType applicationType,
             string applicationBaseUrl,
             bool noSource = false)
         {
@@ -158,12 +177,15 @@ namespace E2ETests
                 var musicStoreDbName = DbUtils.GetUniqueName();
 
                 var deploymentParameters = new DeploymentParameters(
-                    Helpers.GetApplicationPath(), serverType, donetFlavor, architecture)
+                    Helpers.GetApplicationPath(applicationType), serverType, runtimeFlavor, architecture)
                 {
                     ApplicationBaseUriHint = applicationBaseUrl,
                     EnvironmentName = "SocialTesting",
+                    ServerConfigTemplateContent = (serverType == ServerType.IISExpress) ? File.ReadAllText("Http.config") : null,
+                    SiteName = "MusicStoreTestSite",
                     PublishApplicationBeforeDeployment = true,
-                    PublishTargetFramework = donetFlavor == RuntimeFlavor.Clr ? "dnx451" : "netstandardapp1.5",
+                    TargetFramework = runtimeFlavor == RuntimeFlavor.Clr ? "net451" : "netcoreapp1.0",
+                    ApplicationType = applicationType,
                     UserAdditionalCleanup = parameters =>
                     {
                         DbUtils.DropDatabase(musicStoreDbName, _logger);
@@ -179,117 +201,10 @@ namespace E2ETests
                 using (var deployer = ApplicationDeployerFactory.Create(deploymentParameters, _logger))
                 {
                     var deploymentResult = deployer.Deploy();
+
                     Helpers.SetInMemoryStoreForIIS(deploymentParameters, _logger);
 
-                    var httpClientHandler = new HttpClientHandler()
-                    {
-                        // Temporary workaround for issue https://github.com/dotnet/corefx/issues/4960
-                        AllowAutoRedirect = false
-                    };
-                    var httpClient = new HttpClient(httpClientHandler)
-                    {
-                        BaseAddress = new Uri(deploymentResult.ApplicationBaseUri),
-                        Timeout = TimeSpan.FromSeconds(5),
-                    };
-
-                    // Request to base address and check if various parts of the body are rendered
-                    // & measure the cold startup time.
-                    var response = await RetryHelper.RetryRequest(async () =>
-                    {
-                        return await httpClient.GetAsync(string.Empty);
-                    }, logger: _logger, cancellationToken: deploymentResult.HostShutdownToken);
-
-                    Assert.False(response == null, "Response object is null because the client could not " +
-                        "connect to the server after multiple retries");
-
-                    var validator = new Validator(httpClient, httpClientHandler, _logger, deploymentResult);
-
-                    await validator.VerifyHomePage(response);
-
-                    // Verify the static file middleware can serve static content.
-                    await validator.VerifyStaticContentServed();
-
-                    // Making a request to a protected resource should automatically redirect to login page.
-                    await validator.AccessStoreWithoutPermissions();
-
-                    // Register a user - Negative scenario where the Password & ConfirmPassword do not match.
-                    await validator.RegisterUserWithNonMatchingPasswords();
-
-                    // Register a valid user.
-                    var generatedEmail = await validator.RegisterValidUser();
-
-                    await validator.SignInWithUser(generatedEmail, "Password~1");
-
-                    // Register a user - Negative scenario : Trying to register a user name that's already registered.
-                    await validator.RegisterExistingUser(generatedEmail);
-
-                    // Logout from this user session - This should take back to the home page
-                    await validator.SignOutUser(generatedEmail);
-
-                    // Sign in scenarios: Invalid password - Expected an invalid user name password error.
-                    await validator.SignInWithInvalidPassword(generatedEmail, "InvalidPassword~1");
-
-                    // Sign in scenarios: Valid user name & password.
-                    await validator.SignInWithUser(generatedEmail, "Password~1");
-
-                    // Change password scenario
-                    await validator.ChangePassword(generatedEmail);
-
-                    // SignIn with old password and verify old password is not allowed and new password is allowed
-                    await validator.SignOutUser(generatedEmail);
-                    await validator.SignInWithInvalidPassword(generatedEmail, "Password~1");
-                    await validator.SignInWithUser(generatedEmail, "Password~2");
-
-                    // Making a request to a protected resource that this user does not have access to - should
-                    // automatically redirect to the configured access denied page
-                    await validator.AccessStoreWithoutPermissions(generatedEmail);
-
-                    // Logout from this user session - This should take back to the home page
-                    await validator.SignOutUser(generatedEmail);
-
-                    // Login as an admin user
-                    await validator.SignInWithUser("Administrator@test.com", "YouShouldChangeThisPassword1!");
-
-                    // Now navigating to the store manager should work fine as this user has
-                    // the necessary permission to administer the store.
-                    await validator.AccessStoreWithPermissions();
-
-                    // Create an album
-                    var albumName = await validator.CreateAlbum();
-                    var albumId = await validator.FetchAlbumIdFromName(albumName);
-
-                    // Get details of the album
-                    await validator.VerifyAlbumDetails(albumId, albumName);
-
-                    // Verify status code pages acts on non-existing items.
-                    await validator.VerifyStatusCodePages();
-
-                    // Get the non-admin view of the album.
-                    await validator.GetAlbumDetailsFromStore(albumId, albumName);
-
-                    // Add an album to cart and checkout the same
-                    await validator.AddAlbumToCart(albumId, albumName);
-                    await validator.CheckOutCartItems();
-
-                    // Delete the album from store
-                    await validator.DeleteAlbum(albumId, albumName);
-
-                    // Logout from this user session - This should take back to the home page
-                    await validator.SignOutUser("Administrator");
-
-                    // Google login
-                    //await validator.LoginWithGoogle();
-
-                    // Facebook login
-                    await validator.LoginWithFacebook();
-
-                    // Twitter login
-                    await validator.LoginWithTwitter();
-
-                    // MicrosoftAccountLogin
-                    await validator.LoginWithMicrosoftAccount();
-
-                    _logger.LogInformation("Variation completed successfully.");
+                    await SmokeTestHelper.RunTestsAsync(deploymentResult, _logger);
                 }
             }
         }

@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using System.Collections.Generic;
 using System.Net;
 using System.Net.Http;
@@ -40,10 +41,13 @@ namespace E2ETests
             Assert.Equal<string>("ValidStateData", queryItems["state"]);
             Assert.Equal<string>("custom", queryItems["custom_redirect_uri"]);
             //Check for the correlation cookie
-            //Assert.NotNull(_httpClientHandler.CookieContainer.GetCookies(new Uri(_deploymentResult.ApplicationBaseUri)).GetCookieWithName(".AspNetCore.Correlation.Google"));
+            Assert.NotEmpty(
+                _httpClientHandler.CookieContainer.GetCookies(new Uri(_deploymentResult.ApplicationBaseUri))
+                .Cast<Cookie>()
+                .Where(cookie => cookie.Name.StartsWith(".AspNetCore.Correlation.Google")));
 
             //This is just to generate a correlation cookie. Previous step would generate this cookie, but we have reset the handler now.
-            _httpClientHandler = new HttpClientHandler() { AllowAutoRedirect = false };
+            _httpClientHandler = new HttpClientHandler();
             _httpClient = new HttpClient(_httpClientHandler) { BaseAddress = new Uri(_deploymentResult.ApplicationBaseUri) };
 
             response = await DoGetAsync("Account/Login");
@@ -60,7 +64,6 @@ namespace E2ETests
 
             //Post a message to the Google middleware
             response = await DoGetAsync("signin-google?code=ValidCode&state=ValidStateData");
-            response = await DoGetAsync(response.Headers.Location);
             await ThrowIfResponseStatusNotOk(response);
             responseContent = await response.Content.ReadAsStringAsync();
 
@@ -80,7 +83,6 @@ namespace E2ETests
 
             content = new FormUrlEncodedContent(formParameters.ToArray());
             response = await DoPostAsync("Account/ExternalLoginConfirmation", content);
-            response = await DoGetAsync(response.Headers.Location);
             await ThrowIfResponseStatusNotOk(response);
             responseContent = await response.Content.ReadAsStringAsync();
 

@@ -24,10 +24,10 @@ namespace MusicStore.Models
         public static ShoppingCart GetCart(MusicStoreContext db, string cartId)
             => new ShoppingCart(db, cartId);
 
-        public void AddToCart(Album album)
+        public async Task AddToCart(Album album)
         {
             // Get the matching cart and album instances
-            var cartItem = _dbContext.CartItems.SingleOrDefault(
+            var cartItem = await _dbContext.CartItems.SingleOrDefaultAsync(
                 c => c.CartId == _shoppingCartId
                 && c.AlbumId == album.AlbumId);
 
@@ -54,7 +54,7 @@ namespace MusicStore.Models
         public int RemoveFromCart(int id)
         {
             // Get the cart
-            var cartItem = _dbContext.CartItems.Single(
+            var cartItem = _dbContext.CartItems.SingleOrDefault(
                 cart => cart.CartId == _shoppingCartId
                 && cart.CartItemId == id);
 
@@ -88,10 +88,21 @@ namespace MusicStore.Models
 
         public Task<List<CartItem>> GetCartItems()
         {
-            return _dbContext.CartItems.
-                Where(cart => cart.CartId == _shoppingCartId).
-                Include(c => c.Album).
-                ToListAsync();
+            return _dbContext
+                .CartItems
+                .Where(cart => cart.CartId == _shoppingCartId)
+                .Include(c => c.Album)
+                .ToListAsync();
+        }
+        
+        public Task<List<string>> GetCartAlbumTitles()
+        {
+            return _dbContext
+                .CartItems
+                .Where(cart => cart.CartId == _shoppingCartId)
+                .Select(c => c.Album.Title)
+                .OrderBy(n => n)
+                .ToListAsync();
         }
 
         public Task<int> GetCount()
@@ -110,7 +121,8 @@ namespace MusicStore.Models
             // the current price for each of those albums in the cart
             // sum all album price totals to get the cart total
 
-            return _dbContext.CartItems
+            return _dbContext
+                .CartItems
                 .Include(c => c.Album)
                 .Where(c => c.CartId == _shoppingCartId)
                 .Select(c => c.Album.Price * c.Count)
@@ -127,7 +139,7 @@ namespace MusicStore.Models
             foreach (var item in cartItems)
             {
                 //var album = _db.Albums.Find(item.AlbumId);
-                var album = _dbContext.Albums.Single(a => a.AlbumId == item.AlbumId);
+                var album = await _dbContext.Albums.SingleAsync(a => a.AlbumId == item.AlbumId);
 
                 var orderDetail = new OrderDetail
                 {

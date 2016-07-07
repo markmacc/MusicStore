@@ -5,7 +5,7 @@ using System.Net.Http;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http.Internal;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.WebUtilities;
 
 namespace MusicStore.Mocks.MicrosoftAccount
@@ -21,7 +21,7 @@ namespace MusicStore.Mocks.MicrosoftAccount
 
             if (request.RequestUri.AbsoluteUri.StartsWith("https://login.microsoftonline.com/common/oauth2/v2.0/token"))
             {
-                var formData = new FormCollection(await FormReader.ReadFormAsync(await request.Content.ReadAsStreamAsync()));
+                var formData = new FormCollection(await new FormReader(await request.Content.ReadAsStreamAsync()).ReadFormAsync());
                 if (formData["grant_type"] == "authorization_code")
                 {
                     if (formData["code"] == "ValidCode")
@@ -54,5 +54,5 @@ namespace MusicStore.Mocks.MicrosoftAccount
             throw new NotImplementedException(request.RequestUri.AbsoluteUri);
         }
     }
-} 
+}
 #endif

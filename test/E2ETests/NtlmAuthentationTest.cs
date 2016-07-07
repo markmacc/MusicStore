@@ -25,20 +25,24 @@ namespace E2ETests
         [ConditionalTheory, Trait("E2Etests", "E2Etests")]
         [OSSkipCondition(OperatingSystems.Linux)]
         [OSSkipCondition(OperatingSystems.MacOSX)]
-        [InlineData(ServerType.WebListener, RuntimeFlavor.CoreClr, RuntimeArchitecture.x64, "http://localhost:5050/")]
-        public async Task NtlmAuthenticationTest(ServerType serverType, RuntimeFlavor runtimeFlavor, RuntimeArchitecture architecture, string applicationBaseUrl)
+        [InlineData(ServerType.WebListener, RuntimeFlavor.CoreClr, RuntimeArchitecture.x64, ApplicationType.Portable, "http://localhost:5050/")]
+        [InlineData(ServerType.WebListener, RuntimeFlavor.CoreClr, RuntimeArchitecture.x64, ApplicationType.Standalone, "http://localhost:5051/")]
+        [InlineData(ServerType.IISExpress, RuntimeFlavor.CoreClr, RuntimeArchitecture.x64, ApplicationType.Portable, "http://localhost:5052/")]
+        [InlineData(ServerType.IISExpress, RuntimeFlavor.CoreClr, RuntimeArchitecture.x64, ApplicationType.Standalone, "http://localhost:5053/")]
+        public async Task NtlmAuthenticationTest(ServerType serverType, RuntimeFlavor runtimeFlavor, RuntimeArchitecture architecture, ApplicationType applicationType, string applicationBaseUrl)
         {
             using (_logger.BeginScope("NtlmAuthenticationTest"))
             {
                 var musicStoreDbName = DbUtils.GetUniqueName();
 
-                var deploymentParameters = new DeploymentParameters(Helpers.GetApplicationPath(), serverType, runtimeFlavor, architecture)
+                var deploymentParameters = new DeploymentParameters(Helpers.GetApplicationPath(applicationType), serverType, runtimeFlavor, architecture)
                 {
                     PublishApplicationBeforeDeployment = true,
-                    PublishTargetFramework = runtimeFlavor == RuntimeFlavor.Clr ? "dnx451" : "netstandardapp1.5",
+                    TargetFramework = runtimeFlavor == RuntimeFlavor.Clr ? "net451" : "netcoreapp1.0",
+                    ApplicationType = applicationType,
                     ApplicationBaseUriHint = applicationBaseUrl,
                     EnvironmentName = "NtlmAuthentication", //Will pick the Start class named 'StartupNtlmAuthentication'
-                    ApplicationHostConfigTemplateContent = (serverType == ServerType.IISExpress) ? File.ReadAllText("NtlmAuthentation.config") : null,
+                    ServerConfigTemplateContent = (serverType == ServerType.IISExpress) ? File.ReadAllText("NtlmAuthentation.config") : null,
                     SiteName = "MusicStoreNtlmAuthentication", //This is configured in the NtlmAuthentication.config
                     UserAdditionalCleanup = parameters =>
                     {
@@ -55,7 +59,7 @@ namespace E2ETests
                 using (var deployer = ApplicationDeployerFactory.Create(deploymentParameters, _logger))
                 {
                     var deploymentResult = deployer.Deploy();
-                    var httpClientHandler = new HttpClientHandler() { UseDefaultCredentials = true, AllowAutoRedirect = false };
+                    var httpClientHandler = new HttpClientHandler() { UseDefaultCredentials = true };
                     var httpClient = new HttpClient(httpClientHandler) { BaseAddress = new Uri(deploymentResult.ApplicationBaseUri) };
 
                     // Request to base address and check if various parts of the body are rendered & measure the cold startup time.
@@ -68,9 +72,11 @@ namespace E2ETests
                         "connect to the server after multiple retries");
 
                     var validator = new Validator(httpClient, httpClientHandler, _logger, deploymentResult);
+
+                    Console.WriteLine("Verifying home page");
                     await validator.VerifyNtlmHomePage(response);
 
-                    //Should be able to access the store as the Startup adds necessary permissions for the current user
+                    Console.WriteLine("Verifying access to store with permissions");
                     await validator.AccessStoreWithPermissions();
 
                     _logger.LogInformation("Variation completed successfully.");

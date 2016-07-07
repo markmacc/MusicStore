@@ -5,7 +5,7 @@ using System.Net;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http.Internal;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.WebUtilities;
 
 namespace MusicStore.Mocks.Twitter
@@ -23,7 +23,7 @@ namespace MusicStore.Mocks.Twitter
 
             if (request.RequestUri.AbsoluteUri.StartsWith("https://api.twitter.com/oauth/access_token"))
             {
-                var formData = new FormCollection(await FormReader.ReadFormAsync(await request.Content.ReadAsStreamAsync()));
+                var formData = new FormCollection(await new FormReader(await request.Content.ReadAsStreamAsync()).ReadFormAsync());
                 if (formData["oauth_verifier"] == "valid_oauth_verifier")
                 {
                     if (_requestTokenEndpointInvoked)
@@ -65,5 +65,5 @@ namespace MusicStore.Mocks.Twitter
             throw new NotImplementedException(request.RequestUri.AbsoluteUri);
         }
     }
-} 
+}
 #endif

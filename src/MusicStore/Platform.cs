@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Runtime.InteropServices;
-using Microsoft.Extensions.PlatformAbstractions;
 
 namespace MusicStore
 {
@@ -8,6 +7,8 @@ namespace MusicStore
     {
         // Defined in winnt.h
         private const int PRODUCT_NANO_SERVER = 0x0000006D;
+        private const int PRODUCT_DATACENTER_NANO_SERVER = 0x0000008F;
+        private const int PRODUCT_STANDARD_NANO_SERVER = 0x00000090;
 
         [DllImport("api-ms-win-core-sysinfo-l1-2-1.dll", SetLastError = false)]
         private static extern bool GetProductInfo(
@@ -17,16 +18,9 @@ namespace MusicStore
               int dwSpMinorVersion,
               out int pdwReturnedProductType);
 
-        private readonly IRuntimeEnvironment _runtimeEnvironment;
-
         private bool? _isNano;
         private bool? _isMono;
         private bool? _isWindows;
-
-        public Platform(IRuntimeEnvironment runtimeEnvironment)
-        {
-            _runtimeEnvironment = runtimeEnvironment;
-        }
 
         public bool IsRunningOnWindows
         {
@@ -34,8 +28,7 @@ namespace MusicStore
             {
                 if (_isWindows == null)
                 {
-                    _isWindows = _runtimeEnvironment.OperatingSystem.Equals(
-                        "Windows", StringComparison.OrdinalIgnoreCase);
+                    _isWindows = RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
                 }
 
                 return _isWindows.Value;
@@ -48,7 +41,7 @@ namespace MusicStore
             {
                 if (_isMono == null)
                 {
-                    _isMono = _runtimeEnvironment.RuntimeType.Equals("Mono", StringComparison.OrdinalIgnoreCase);
+                    _isMono = Type.GetType("Mono.Runtime") != null;
                 }
 
                 return _isMono.Value;
@@ -61,14 +54,16 @@ namespace MusicStore
             {
                 if (_isNano == null)
                 {
-                    var osVersion = new Version(_runtimeEnvironment.OperatingSystemVersion ?? "");
+                    var osVersion = new Version(RtlGetVersion() ?? string.Empty);
 
                     try
                     {
                         int productType;
                         if (GetProductInfo(osVersion.Major, osVersion.Minor, 0, 0, out productType))
                         {
-                            _isNano = productType == PRODUCT_NANO_SERVER;
+                            _isNano = productType == PRODUCT_NANO_SERVER ||
+                                productType == PRODUCT_DATACENTER_NANO_SERVER ||
+                                productType == PRODUCT_STANDARD_NANO_SERVER;
                         }
                         else
                         {
@@ -87,5 +82,43 @@ namespace MusicStore
             }
         }
 
+        // Sql client not available on mono, non-windows, or nano
+        public bool UseInMemoryStore
+        {
+            get
+            {
+                return !IsRunningOnWindows || IsRunningOnMono || IsRunningOnNanoServer;
+            }
+        }
+
+        [StructLayout(LayoutKind.Sequential)]
+        internal struct RTL_OSVERSIONINFOEX
+        {
+            internal uint dwOSVersionInfoSize;
+            internal uint dwMajorVersion;
+            internal uint dwMinorVersion;
+            internal uint dwBuildNumber;
+            internal uint dwPlatformId;
+            [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 128)]
+            internal string szCSDVersion;
+        }
+
+        // This call avoids the shimming Windows does to report old versions
+        [DllImport("ntdll")]
+        private static extern int RtlGetVersion(out RTL_OSVERSIONINFOEX lpVersionInformation);
+
+        internal static string RtlGetVersion()
+        {
+            RTL_OSVERSIONINFOEX osvi = new RTL_OSVERSIONINFOEX();
+            osvi.dwOSVersionInfoSize = (uint)Marshal.SizeOf(osvi);
+            if (RtlGetVersion(out osvi) == 0)
+            {
+                return $"{osvi.dwMajorVersion}.{osvi.dwMinorVersion}.{osvi.dwBuildNumber}";
+            }
+            else
+            {
+                return null;
+            }
+        }
     }
 }

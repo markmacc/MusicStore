@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Net.Http.Server;
 
-namespace MusicStore
+namespace MusicStore.Standalone
 {
     public static class Program
     {
@@ -17,7 +17,7 @@ namespace MusicStore
             var builder = new WebHostBuilder()
                 .UseConfiguration(config)
                 .UseIISIntegration()
-                .UseStartup("MusicStore");
+                .UseStartup("MusicStore.Standalone");
 
             if (string.Equals(builder.GetSetting("server"), "Microsoft.AspNetCore.Server.WebListener", System.StringComparison.Ordinal))
             {

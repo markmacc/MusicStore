@@ -2,7 +2,6 @@ using System;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Http.Internal;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.AspNetCore.Mvc.ViewComponents;
 using Microsoft.EntityFrameworkCore;
@@ -19,11 +18,11 @@ namespace MusicStore.Components
 
         public CartSummaryComponentTest()
         {
+            var efServiceProvider = new ServiceCollection().AddEntityFrameworkInMemoryDatabase().BuildServiceProvider();
+
             var services = new ServiceCollection();
 
-            services.AddEntityFramework()
-                      .AddInMemoryDatabase()
-                      .AddDbContext<MusicStoreContext>(options => options.UseInMemoryDatabase());
+            services.AddDbContext<MusicStoreContext>(b => b.UseInMemoryDatabase().UseInternalServiceProvider(efServiceProvider));
 
             _serviceProvider = services.BuildServiceProvider();
         }

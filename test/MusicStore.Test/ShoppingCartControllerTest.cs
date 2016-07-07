@@ -6,11 +6,11 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Antiforgery;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Features;
-using Microsoft.AspNetCore.Http.Features.Internal;
-using Microsoft.AspNetCore.Http.Internal;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.ObjectPool;
 using Microsoft.Extensions.Primitives;
 using MusicStore.Models;
 using MusicStore.ViewModels;
@@ -24,11 +24,12 @@ namespace MusicStore.Controllers
 
         public ShoppingCartControllerTest()
         {
-            var services = new ServiceCollection();
+            var efServiceProvider = new ServiceCollection().AddEntityFrameworkInMemoryDatabase().BuildServiceProvider();
 
-            services.AddEntityFramework()
-                      .AddInMemoryDatabase()
-                      .AddDbContext<MusicStoreContext>(options => options.UseInMemoryDatabase());
+            var services = new ServiceCollection();
+            services
+                .AddSingleton<ObjectPoolProvider, DefaultObjectPoolProvider>()
+                .AddDbContext<MusicStoreContext>(b => b.UseInMemoryDatabase().UseInternalServiceProvider(efServiceProvider));
 
             services.AddMvc();
 
@@ -42,7 +43,9 @@ namespace MusicStore.Controllers
             var httpContext = new DefaultHttpContext();
             httpContext.Session = new TestSession();
 
-            var controller = new ShoppingCartController(_serviceProvider.GetRequiredService<MusicStoreContext>());
+            var controller = new ShoppingCartController(
+                _serviceProvider.GetRequiredService<MusicStoreContext>(),
+                _serviceProvider.GetService<ILogger<ShoppingCartController>>());
             controller.ControllerContext.HttpContext = httpContext;
 
             // Act
@@ -66,7 +69,9 @@ namespace MusicStore.Controllers
             httpContext.Session = new TestSession();
             httpContext.Session.SetString("Session", "CartId_A");
 
-            var controller = new ShoppingCartController(_serviceProvider.GetRequiredService<MusicStoreContext>());
+            var controller = new ShoppingCartController(
+                _serviceProvider.GetRequiredService<MusicStoreContext>(),
+                _serviceProvider.GetService<ILogger<ShoppingCartController>>());
             controller.ControllerContext.HttpContext = httpContext;
 
             // Act
@@ -100,7 +105,9 @@ namespace MusicStore.Controllers
             dbContext.AddRange(cartItems);
             dbContext.SaveChanges();
 
-            var controller = new ShoppingCartController(dbContext);
+            var controller = new ShoppingCartController(
+                dbContext,
+                _serviceProvider.GetService<ILogger<ShoppingCartController>>());
             controller.ControllerContext.HttpContext = httpContext;
 
             // Act
@@ -131,7 +138,9 @@ namespace MusicStore.Controllers
             dbContext.AddRange(albums);
             dbContext.SaveChanges();
 
-            var controller = new ShoppingCartController(dbContext);
+            var controller = new ShoppingCartController(
+                dbContext,
+                _serviceProvider.GetService<ILogger<ShoppingCartController>>());
             controller.ControllerContext.HttpContext = httpContext;
 
             // Act
@@ -184,7 +193,9 @@ namespace MusicStore.Controllers
             httpContext.Request.Headers.Add(headers);
 
             // Cotroller initialization
-            var controller = new ShoppingCartController(dbContext);
+            var controller = new ShoppingCartController(
+                dbContext,
+                _serviceProvider.GetService<ILogger<ShoppingCartController>>());
             controller.ControllerContext.HttpContext = httpContext;
 
             // Act

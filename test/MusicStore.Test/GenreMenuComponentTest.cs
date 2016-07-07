@@ -16,10 +16,11 @@ namespace MusicStore.Components
 
         public GenreMenuComponentTest()
         {
+            var efServiceProvider = new ServiceCollection().AddEntityFrameworkInMemoryDatabase().BuildServiceProvider();
+
             var services = new ServiceCollection();
-            services.AddEntityFramework()
-                      .AddInMemoryDatabase()
-                      .AddDbContext<MusicStoreContext>(options => options.UseInMemoryDatabase());
+
+            services.AddDbContext<MusicStoreContext>(b => b.UseInMemoryDatabase().UseInternalServiceProvider(efServiceProvider));
 
             _serviceProvider = services.BuildServiceProvider();
         }
@@ -40,7 +41,7 @@ namespace MusicStore.Components
             Assert.NotNull(result);
             var viewResult = Assert.IsType<ViewViewComponentResult>(result);
             Assert.Null(viewResult.ViewName);
-            var genreResult = Assert.IsType<List<Genre>>(viewResult.ViewData.Model);
+            var genreResult = Assert.IsType<List<string>>(viewResult.ViewData.Model);
             Assert.Equal(9, genreResult.Count);
         }
 
